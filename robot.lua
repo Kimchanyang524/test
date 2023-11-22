@@ -134,6 +134,7 @@ function craftMachine()
     down(6)
     os.sleep(33)
     forward(2,false)
+    robot.select(13)
     robot.suck()
     back(2,false)
 end
