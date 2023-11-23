@@ -1,10 +1,14 @@
 local robot = require("robot")
+local component = require("component")
+local slot = component.inventory_controller.getStackInInternalSlot
+local sides = require("sides")
+local max = robot.inventorySize()
 
 function forward (dist,place)
     for i=1, dist do
         robot.forward()
         if place == "down" then
-            selectItem(16)
+            selectItem("Compact Machine Wall")
             robot.placeDown()
         end
     end
@@ -31,35 +35,51 @@ function down (dist)
         robot.down()
     end
 end
-function countItem(number)
+function countItem(block, num)
     local count=0
-    for i=1,10 do
-        robot.select(i)
-        if robot.compareTo(number) then
-            count = count + robot.count(i)
+    for i=1,max do
+        local item = slot(i)
+        if item then
+            if item.label == block then
+                count = count + item.size
+                if count > num then
+                    return false
+                end
+            end
         end
     end
-    return count
+    return true
 end
-function selectItem(number)
-    for i=1,10 do
-        robot.select(i)
-        if robot.compareTo(number) then
-            return
+function selectItem(block)
+    for i=1,max do
+        local item = slot(i)
+        if item then
+            if item.label == block then
+                robot.select(i)
+                return
+            end
         end
     end
 end
 
 function craftWall()
-    selectItem(12)
+    if countItem("Block of Nickel", 1) then
+        print("Block of Nickel is needed")
+        os.exit()
+    end
+    if countItem("Redstone", 2) then
+        print("Redstone is needed")
+        os.exit()
+    end
+    selectItem("Block of Nickel")
     robot.place()
     up(1)
-    selectItem(11)
+    selectItem("Redstone")
     robot.place()
     up(5)
     robot.drop(1)
     down(6)
-    os.sleep(5)
+    os.sleep(3)
     forward(2,false)
     robot.suck()
     back(2,false)
@@ -73,12 +93,12 @@ function buildPlatform()
         end       
         if i%2 == 1 then
             robot.turnRight()
-            selectItem(16)
+            selectItem("Compact Machine Wall")
             forward(1,"down")
             robot.turnRight()
         else
             robot.turnLeft()
-            selectItem(16)
+            selectItem("Compact Machine Wall")
             forward(1,"down")
             robot.turnLeft()
         end 
@@ -93,11 +113,18 @@ end
 
 
 function craftMachine()
-    while countItem(16) < 98 do
+    while countItem("Compact Machine Wall", 98) do
         craftWall()    
     end
-    
-    selectItem(16)
+    if countItem("End Steel Block", 1) then
+        print("End Steel Block is needed")
+        os.exit()
+    end
+    if countItem("Ender Pearl", 2) then
+        print("Ender Pearl is needed")
+        os.exit()
+    end
+    selectItem("Compact Machine Wall")
     robot.turnLeft()
     forward(2,false)  
     robot.turnRight()
@@ -112,7 +139,7 @@ function craftMachine()
     forward(2,false)
     robot.turnLeft()
     forward(2,false)
-    selectItem(15)
+    selectItem("End Steel Block")
     robot.placeDown()
     forward(2,false)
     robot.turnLeft()
@@ -121,20 +148,19 @@ function craftMachine()
     buildRing()
     robot.turnLeft()
     up(1)
-    selectItem(16)
+    selectItem("Compact Machine Wall")
     robot.placeDown()
     buildPlatform()
     robot.turnLeft()
     forward(2,false)
     robot.turnRight()
     back(5,false)
-    selectItem(14)
+    selectItem("Ender Pearl")
     up(1)
     robot.drop(1)
     down(6)
-    os.sleep(33)
+    os.sleep(27)
     forward(2,false)
-    robot.select(13)
     robot.suck()
     back(2,false)
 end
